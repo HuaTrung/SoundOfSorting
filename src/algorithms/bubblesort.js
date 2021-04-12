@@ -1,11 +1,10 @@
 import colors from '../SortingVisualizer/colorCodes';
-
-export const bubbleSort = (tempArr, speed) => {
+import {sound_test, sound_swap} from '../utils/sound';
+export const bubbleSort = (tempArr, speed,tone,track,audio) => {
 	const arr = tempArr.map(item => item.val);
 	let count = 0;
 
 	const arrayBars = document.getElementsByClassName('arrayBar');
-
 	for (let i = 0; i < arr.length - 1; i++) {
 		let swapped = false;
 		for (let j = 0; j < arr.length - i - 1; j++) {
@@ -13,14 +12,13 @@ export const bubbleSort = (tempArr, speed) => {
 			setTimeout(() => {
 				arrayBars[j].style.backgroundColor = colors.cyan;
 				arrayBars[j + 1].style.backgroundColor = colors.cyan;
+				sound_test(tone,track,arr[i],arr[j],arr.length,audio,speed);
 			}, count++ * speed);
-
 			if (arr[j] > arr[j + 1]) {
 				// swap the heights
 				setTimeout(() => {
 					arrayBars[j].style.backgroundColor = colors.pivotActiveColor;
 					arrayBars[j + 1].style.backgroundColor = colors.pivotActiveColor;
-
 					let temp = arrayBars[j].style.height;
 					arrayBars[j].style.height = arrayBars[j + 1].style.height;
 					arrayBars[j + 1].style.height = temp;

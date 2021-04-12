@@ -1,8 +1,9 @@
 import colors from '../SortingVisualizer/colorCodes';
 import { swap } from './swap';
-export const insertionSort = (tempArr, speed) => {
-	let count = 0;
+import {sound_test, sound_swap} from '../utils/sound';
 
+export const insertionSort = (tempArr, speed,tone,track,audio) => {
+	let count = 0;
 	const arrayBars = document.getElementsByClassName('arrayBar');
 	const arr = tempArr.map(item => item.val);
 
@@ -11,6 +12,7 @@ export const insertionSort = (tempArr, speed) => {
 		setTimeout(() => {
 			arrayBars[i].style.backgroundColor = colors.orange;
 			arrayBars[i - 1].style.backgroundColor = colors.orange;
+			sound_test(tone,track,arr[i],arr[j],arr.length,audio,speed);
 		}, count++ * speed);
 
 		let j = i;
@@ -21,6 +23,7 @@ export const insertionSort = (tempArr, speed) => {
 				if (k !== i)
 					arrayBars[k].style.backgroundColor = colors.sortedElementColor;
 				arrayBars[k - 1].style.backgroundColor = colors.sortedElementColor;
+				sound_swap(tone,track,arr[i],arr[j],arr.length,audio,speed);
 
 				let temp = arrayBars[k].style.height;
 				arrayBars[k].style.height = arrayBars[k - 1].style.height;

@@ -1,5 +1,5 @@
 const colors = {
-	primaryColor: '#dd85e7',
+	primaryColor: '#00b0ff',
 	afterSortingColor: '#00587a',
 	pivotActiveColor: '#ff2400',
 	sortedElementColor: '#4cbb17',

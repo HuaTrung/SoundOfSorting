@@ -1,7 +1,8 @@
-*,
-html {
-	margin: 0;
-	padding: 0;
-	background-color: #f7fbef;
-	font-family: 'Roboto', sans-serif;
+html, body
+{
+    height: 100%;
+}
+.myContainer{
+	margin:20px;
+	border-radius: 10px;
 }
