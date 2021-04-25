@@ -1,7 +1,7 @@
 
 export const sound_test = (tone, track,value1,value2,size,audio,delay) => {
 	var factor = ((value1 / size) + (value2 / size) / 2);
-    var frequency = 440 + (factor * 440);
+    var frequency = 2000 + (factor * 2000);
 
     tone.frequency.linearRampToValueAtTime(frequency, audio.currentTime);
 
@@ -13,7 +13,7 @@ export const sound_test = (tone, track,value1,value2,size,audio,delay) => {
 
 export const sound_swap = (tone, track,value1,value2,size,audio,delay) => {
     var factor = ((value1 / size) + (value2 / size) / 2);
-    var frequency = 440 - (factor * 440);
+    var frequency = 2000 - (factor * 2000);
 
     tone.frequency.linearRampToValueAtTime(frequency, audio.currentTime);
 

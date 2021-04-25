@@ -8,7 +8,6 @@ export const insertionSort = (tempArr, speed,tone,track,audio) => {
 	const arr = tempArr.map(item => item.val);
 
 	for (let i = 1; i < arr.length; i++) {
-		// color current comparing value
 		setTimeout(() => {
 			arrayBars[i].style.backgroundColor = colors.orange;
 			arrayBars[i - 1].style.backgroundColor = colors.orange;
@@ -17,7 +16,7 @@ export const insertionSort = (tempArr, speed,tone,track,audio) => {
 
 		let j = i;
 		while (j > 0 && arr[j] < arr[j - 1]) {
-			let k = j; /* to avoid es line error */
+			let k = j; 
 
 			setTimeout(() => {
 				if (k !== i)
