@@ -11,22 +11,30 @@ import { heapsort } from '../algorithms/heapsort';
 import './SortingVisualizer.css';
 import { RangeInput, Box, Button, Grid, Text, Select, FormField, TextInput } from 'grommet';
 import { Refresh, CirclePlay } from 'grommet-icons';
-// Random Number Genrator
-const generateRandomNumber = (i, j) => {
-	return Math.floor(i + Math.random() * (j - i));
-};
-const algoOption = ["bubble sort", "merge sort", "insertion sort", "selection sort", "quick sort", "heap sort"];
-
+import {startAlgo} from './worker'
+const algoOption = [
+	{ label: 'Bubble Sort', value: "bubbleSort" },
+	{ label: 'Merge Sort', value: "mergeSort" },
+	{ label: 'Insertion Sort', value: "insertionSort" },
+	{ label: 'Selection Sort', value: "selectionSort" },
+	{ label: 'Quick Sort', value: "quickSort" },
+	{ label: 'Heap Sort', value: "heapSort" },
+  ];
 const Visualizer = () => {
 	// state of the array
 	const [mainArray, setMainArray] = useState([]);
 	const [arrayLength, setArrayLength] = useState(20);
-	const [animationSpeed, setAnimationSpeed] = useState(10);
+	const [animationSpeed, setAnimationSpeed] = useState(100);
+	const [frequency, setFrequency] = useState(100);
+	const [sound, setSound] = useState(10);
 	const [algo, setAlgo] = useState('mergesort');
 	const [able, setAble] = useState(true);
 	const [options, setOptions] = useState(algoOption);
 	var queue = null;
 	var worker = null;
+	var didIt=false;
+	var i=0;
+	var j=0;
 	var then = performance.now();
 
 	const audio = new AudioContext();
@@ -68,76 +76,68 @@ const Visualizer = () => {
 	}, [able]);
 
 	useEffect(() => {
-		queue = new Array();
-		worker = new Worker('../utils/worker.js');
 		window.requestAnimationFrame(function tick(now) {
 			const arrayBars = document.getElementsByClassName('arrayBar');
-			var container = document.getElementsByClassName('#visualization');
-			var elements = document.getElementsByTagName('span');
-
-			var delay = Number(document.getElementsByClassName('#delay').value);
-
-			for (var i = 0; i < elements.length; i++) {
-				if (elements[i].style.translate != '0px') {
-					elements[i].style.transition = 'all ' + (delay / 1000) + 's';
-					elements[i].style.transform = 'translate(0px)';
-					//elements[i].style.translate = '0px';
-				}
-			}
-
+			const delay=parseInt(document.getElementsByClassName('SpeedAnimation')[0].innerHTML);
+			const fre=parseInt(document.getElementsByClassName('Frequency')[0].innerHTML);
+			const sound=parseInt(document.getElementsByClassName('Sound')[0].innerHTML);
+			master.gain.setValueAtTime(sound / 100, audio.currentTime);
+			const tmpLength=arrayLength;
 			if (now - then > delay) {
-				for (var i = 0; i < elements.length; i++) {
-					elements[i].classList.remove('test');
-					elements[i].classList.remove('swap');
-				}
+				if(didIt==false){
+					var event = (queue || []).shift();
+					if (event) {
+						console.log(event);
+						i=event[1]
+						j=event[2]
+						if (event[0] == 'test') {
+							arrayBars[i].style.backgroundColor = colors.cyan;
+							arrayBars[j].style.backgroundColor = colors.cyan;
 
-				var event = (queue || []).shift();
-				if (event) {
-					var element1 = elements[event.data[1]];
-					var element2 = elements[event.data[2]];
+							var factor = ((event[3] / tmpLength) + (event[4] /tmpLength) / 2);
+							var frequency = fre + (factor * fre);
 
-					var value1 = Number(element1.dataset.value);
-					var value2 = Number(element2.dataset.value);
+							tone.frequency.linearRampToValueAtTime(frequency, audio.currentTime);
 
-					var distance = Math.floor(element1.offsetLeft - element2.offsetLeft);
+							track.gain.cancelScheduledValues(audio.currentTime);
+							track.gain.linearRampToValueAtTime(0.75, audio.currentTime);
+							track.gain.linearRampToValueAtTime(0, audio.currentTime + delay);
+						}
 
-					if (event.data[0] == 'test') {
-						element1.classList.add('test');
-						element2.classList.add('test');
+						if (event[0] == 'swap') {
+							arrayBars[i].style.backgroundColor = colors.pivotActiveColor;
+							arrayBars[j].style.backgroundColor = colors.pivotActiveColor;
+							let temp = arrayBars[j].style.height;
+							arrayBars[j].style.height = arrayBars[i].style.height;
+							arrayBars[i].style.height = temp;
+							if (arrayLength<29){
+								let temp = arrayBars[j].innerHTML;
+								arrayBars[j].innerHTML = arrayBars[i].innerHTML;
+								arrayBars[i].innerHTML = temp;
+							}
+							var factor = ((event[3] / tmpLength) + (event[4] /tmpLength) / 2);
+							var frequency = fre - (factor * fre);
 
-						var factor = ((value1 / elements.length) + (value2 / elements.length) / 2);
-						var frequency = 440 + (factor * 440);
+							tone.frequency.linearRampToValueAtTime(frequency, audio.currentTime);
 
-						tone.frequency.linearRampToValueAtTime(frequency, audio.currentTime);
+							track.gain.cancelScheduledValues(audio.currentTime);
+							track.gain.linearRampToValueAtTime(1, audio.currentTime);
+							track.gain.linearRampToValueAtTime(0, audio.currentTime + delay);
 
-						track.gain.cancelScheduledValues(audio.currentTime);
-						track.gain.linearRampToValueAtTime(0.75, audio.currentTime);
-						track.gain.linearRampToValueAtTime(0, audio.currentTime + delay);
+
+						}
+						// arrayBars[i].style.backgroundColor = colors.primaryColor;
+						// arrayBars[j].style.backgroundColor = colors.primaryColor;
+					} else {
+						track.gain.cancelScheduledValues(0);
+						track.gain.linearRampToValueAtTime(0, audio.currentTime);
 					}
-
-					if (event.data[0] == 'swap') {
-						var factor = ((value1 / elements.length) + (value2 / elements.length) / 2);
-						var frequency = 440 - (factor * 440);
-
-						tone.frequency.linearRampToValueAtTime(frequency, audio.currentTime);
-
-						track.gain.cancelScheduledValues(audio.currentTime);
-						track.gain.linearRampToValueAtTime(1, audio.currentTime);
-						track.gain.linearRampToValueAtTime(0, audio.currentTime + delay);
-
-						// swap 2 elements
-						arrayBars[event.data[1]].style.backgroundColor = colors.pivotActiveColor;
-						arrayBars[event.data[2]].style.backgroundColor = colors.pivotActiveColor;
-						let temp = arrayBars[event.data[1]].style.height;
-						arrayBars[event.data[1]].style.height = arrayBars[event.data[2]].style.height;
-						arrayBars[event.data[2]].style.height = temp;
-
-					}
-				} else {
-					track.gain.cancelScheduledValues(0);
-					track.gain.linearRampToValueAtTime(0, audio.currentTime);
 				}
-
+				else{
+					arrayBars[i].style.backgroundColor = colors.primaryColor;
+					arrayBars[j].style.backgroundColor = colors.primaryColor;
+				}
+				didIt=!didIt;
 				then = now;
 			}
 			window.requestAnimationFrame(tick);
@@ -189,78 +189,48 @@ const Visualizer = () => {
 		}, counter * animationSpeed);
 	};
 
-	// BUBBLE SORT
-	const bubbleSortAnimate = () => {
-		setAble(false);
-		console.log(mainArray);
-		const { arr, count } = bubbleSort(mainArray, animationSpeed, tone, track, audio);
-		colorEveryElement(arr, count + 1);
-	};
-
-	// MERGE SORT
-	const mergeSort = () => {
-		setAble(false);
-		const { sortedArray, count } = mergeSortAnimation(
-			mainArray,
-			animationSpeed
-		);
-		colorEveryElement(sortedArray, count + 5);
-	};
-
-	// INSERTION SORT
-	const insertionSortAnimate = () => {
-		setAble(false);
-		const { arr, count } = insertionSort(mainArray, animationSpeed, tone, track, audio);
-		colorEveryElement(arr, count + 1);
-	};
-
-	// SELECTION SORT
-	const selectionSortAnimate = () => {
-		setAble(false);
-		const { arr, count } = selectionSort(mainArray, animationSpeed);
-		colorEveryElement(arr, count + 2);
-	};
-
-	//QUICK SORT
-	const quicksortAnimate = () => {
-		setAble(false);
-		const { arr, count } = quicksort(mainArray, animationSpeed);
-		colorEveryElement(arr, count + 1);
-	};
-
-	// HEAP SORT
-	const heapsortAnimate = () => {
-		setAble(false);
-		const { arr, count } = heapsort(mainArray, animationSpeed);
-		colorEveryElement(arr, count + 1);
-	};
 	const startSorting = algo => {
-		switch (algo) {
-			case 'bubble sort':
-				bubbleSortAnimate();
-				break;
-
-			case 'merge sort':
-				mergeSort();
-				break;
-
-			case 'selection sort':
-				selectionSortAnimate();
-				break;
-
-			case 'insertion sort':
-				insertionSortAnimate();
-				break;
-			case 'quick sort':
-				quicksortAnimate();
-				break;
-			case 'heap sort':
-				heapsortAnimate();
-				break;
-			default:
-				mergeSort();
-				break;
+		if (worker) {
+			worker.terminate();
+		  }
+		  
+		// https://developers.google.com/web/updates/2017/09/autoplay-policy-changes#webaudio
+		if (audio.resume) {
+			audio.resume();
 		}
+		worker = new window.Worker("./sort-worker.js");
+		queue=[];
+		worker.onmessage = (e) => {
+			queue.push(e.data);
+		};
+		worker.postMessage([algo.value,mainArray]);
+
+		// switch (algo) {
+		// 	case 'bubble sort':
+		// 		bubbleSortAnimate();
+		// 		break;
+
+		// 	case 'merge sort':
+		// 		mergeSort();
+		// 		break;
+
+		// 	case 'selection sort':
+		// 		selectionSortAnimate();
+		// 		break;
+
+		// 	case 'insertion sort':
+		// 		insertionSortAnimate();
+		// 		break;
+		// 	case 'quick sort':
+		// 		quicksortAnimate();
+		// 		break;
+		// 	case 'heap sort':
+		// 		heapsortAnimate();
+		// 		break;
+		// 	default:
+		// 		mergeSort();
+		// 		break;
+		// }
 	};
 
 	return (
@@ -291,6 +261,8 @@ const Visualizer = () => {
 							placeholder="Select Sorting Algorithm"
 							value={algo}
 							options={options}
+							labelKey="label"
+							valueKey="value"
 							onChange={({ option }) => setAlgo(option)}
 							onClose={() => setOptions(algoOption)}
 							onSearch={text => {
@@ -330,13 +302,30 @@ const Visualizer = () => {
 							label="Reset"
 							onClick={() => { }}
 						/>
-						<Text size="small">Speed: {`${animationSpeed}`}</Text>
+						<Text size="small">Speed:<span className="SpeedAnimation">{`${animationSpeed}`}</span></Text>
 						<RangeInput
-							min={16}
-							max={36}
-							step={2}
+							
+							min={1}
+							max={200}
+							step={10}
 							value={animationSpeed}
 							onChange={event => setAnimationSpeed(parseInt(event.target.value, 10))}
+						/>
+						<Text size="small">Frequency: <span className="Frequency">{`${frequency}`}</span></Text>
+						<RangeInput
+							min={100}
+							max={1500}
+							step={50}
+							value={frequency}
+							onChange={event => setFrequency(parseInt(event.target.value, 10))}
+						/>
+						<Text size="small">Sound: <span className="Sound">{`${sound}`}</span></Text>
+						<RangeInput
+							min={10}
+							max={510}
+							step={50}
+							value={sound}
+							onChange={event => {setSound(parseInt(event.target.value, 10))}}
 						/>
 					</Box>
 
