@@ -255,7 +255,7 @@ const Visualizer = () => {
 						<Box  direction="row" align="center">
 						<FormField disabled={isRunning}
 						label={<Text size='medium' color='black'> Number of elements</Text>} style={{ color: "#1976D2" }}>
-							<TextInput placeholder="default is 10" onChange={event => { setArrayLength(event.target.value) }} />
+							<TextInput placeholder="default is 100" onChange={event => { setArrayLength(event.target.value) }} />
 						</FormField>
 						<Cycle  color='#00B0FF' size='medium' onClick={() => {if (isRunning!==true) setGenArray(!genArray);}} 
 						className={genArray ? 'rotate down': 'rotate down1'} />
