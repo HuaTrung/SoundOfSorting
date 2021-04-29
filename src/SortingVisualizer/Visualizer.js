@@ -20,20 +20,19 @@ const Visualizer = () => {
 	const [arrayLength, setArrayLength] = useState(20);
 	const [animationSpeed, setAnimationSpeed] = useState(100);
 	const [frequency, setFrequency] = useState(100);
-	const [sound, setSound] = useState(10);
-	const [algo, setAlgo] = useState('mergesort');
-	const [able, setAble] = useState(true);
+	const [sound, setSound] = useState(50);
+	const [algo, setAlgo] = useState({ label: 'Bubble Sort', value: "bubbleSort" });
 	const [genArray, setGenArray] = useState(true);
 	const [options, setOptions] = useState(algoOption);
 	var [isRunning, setRunning] = useState(false);
 	var [isPause, setPause] = useState(false);
-	var queue = null;
-	var worker = null;
-	var didIt = false;
-	var i = -1;
-	var j = -1;
+	const workerRef = React.useRef();
+	const queueRef = React.useRef();
+	const stateGameRef = React.useRef();
+	const lastIRef = React.useRef();
+	const lastJRef = React.useRef();
+	const lastDidIt = React.useRef();
 	var then = performance.now();
-	console.log("reload");
 	const audio = new AudioContext();
 	var master = audio.createGain();
 	master.gain.setValueAtTime(0.20, audio.currentTime);
@@ -51,9 +50,9 @@ const Visualizer = () => {
 
 	//Render the Array Before DOM loades
 	useEffect(() => {
-		if (able) populateArray(arrayLength);
+		populateArray();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [arrayLength, algo,genArray]);
+	}, [arrayLength,genArray]);
 
 	useEffect(() => {
 		window.requestAnimationFrame(function tick(now) {
@@ -61,27 +60,29 @@ const Visualizer = () => {
 			const delay = parseInt(document.getElementsByClassName('SpeedAnimation')[0].innerHTML);
 			const fre = parseInt(document.getElementsByClassName('Frequency')[0].innerHTML);
 			const sound = parseInt(document.getElementsByClassName('Sound')[0].innerHTML);
+			// const btn = document.getElementsByClassName('playButton')[0].outerText;
 			master.gain.setValueAtTime(sound / 100, audio.currentTime);
-			const tmpLength = arrayLength;	
-			if (isPause == false && isRunning == true) {
+			const tmpLength = arrayLength;
+			if (stateGameRef.current === true) {
 				if (now - then > delay) {
-					if (didIt == false) {
-						var event = (queue || []).shift();
+					if (lastDidIt.current === false) {
+						var event = (queueRef.current || []).shift();
 						if (event) {
-							if (event[0] == 'finished') {
+							if (event[0] === 'finished') {
+								console.log(event[1])
 								arrayBars[event[1]].style.backgroundColor = colors.afterSortingColor;
 								tone.frequency.linearRampToValueAtTime(fre + (event[1] * fre), audio.currentTime);
 								track.gain.cancelScheduledValues(audio.currentTime);
 								track.gain.linearRampToValueAtTime(0.75, audio.currentTime);
 								track.gain.linearRampToValueAtTime(0, audio.currentTime + delay);
-								i = -1; j = -1;
+								lastIRef.current = -1; lastJRef.current = -1;
 							}
 							else {
-								i = event[1]
-								j = event[2]
-								if (event[0] == 'test') {
-									arrayBars[i].style.backgroundColor = colors.cyan;
-									arrayBars[j].style.backgroundColor = colors.cyan;
+								lastIRef.current = event[1]
+								lastJRef.current = event[2]
+								if (event[0] === 'test') {
+									arrayBars[lastIRef.current].style.backgroundColor = colors.cyan;
+									arrayBars[lastJRef.current].style.backgroundColor = colors.cyan;
 
 									var factor = ((event[3] / tmpLength) + (event[4] / tmpLength) / 2);
 									var frequency = fre + (factor * fre);
@@ -92,16 +93,16 @@ const Visualizer = () => {
 									track.gain.linearRampToValueAtTime(0, audio.currentTime + delay);
 								}
 
-								if (event[0] == 'swap') {
-									arrayBars[i].style.backgroundColor = colors.pivotActiveColor;
-									arrayBars[j].style.backgroundColor = colors.pivotActiveColor;
-									let temp = arrayBars[j].style.height;
-									arrayBars[j].style.height = arrayBars[i].style.height;
-									arrayBars[i].style.height = temp;
+								if (event[0] === 'swap') {
+									arrayBars[lastIRef.current].style.backgroundColor = colors.pivotActiveColor;
+									arrayBars[lastJRef.current].style.backgroundColor = colors.pivotActiveColor;
+									let temp = arrayBars[lastJRef.current].style.height;
+									arrayBars[lastJRef.current].style.height = arrayBars[lastIRef.current].style.height;
+									arrayBars[lastIRef.current].style.height = temp;
 									if (arrayLength < 29) {
-										let temp = arrayBars[j].innerHTML;
-										arrayBars[j].innerHTML = arrayBars[i].innerHTML;
-										arrayBars[i].innerHTML = temp;
+										let temp = arrayBars[lastJRef.current].innerHTML;
+										arrayBars[lastJRef.current].innerHTML = arrayBars[lastIRef.current].innerHTML;
+										arrayBars[lastIRef.current].innerHTML = temp;
 									}
 									var factor = ((event[3] / tmpLength) + (event[4] / tmpLength) / 2);
 									var frequency = fre - (factor * fre);
@@ -119,26 +120,29 @@ const Visualizer = () => {
 						}
 					}
 					else {
-						if (i != -1 && j != -1) {
-							arrayBars[i].style.backgroundColor = colors.primaryColor;
-							arrayBars[j].style.backgroundColor = colors.primaryColor;
+						if (lastIRef.current != -1 && lastJRef.current != -1) {
+							arrayBars[lastIRef.current].style.backgroundColor = colors.primaryColor;
+							arrayBars[lastJRef.current].style.backgroundColor = colors.primaryColor;
 						}
 					}
-					didIt = !didIt;
+					lastDidIt.current = !lastDidIt.current;
 					then = now;
 				}
 			}
+			else {
+				track.gain.cancelScheduledValues(0);
+				track.gain.linearRampToValueAtTime(0, audio.currentTime);
+			}
 			window.requestAnimationFrame(tick);
-
 		})
 	});
 
-	const populateArray = size => {
+	function populateArray() {
+		var size=parseInt(arrayLength);
 		var myDiv = document.getElementsByClassName("visualizeContainer");
 		myDiv.innerHTML = "";//remove all child elements inside of myDiv
 		const tempArr = [];
 		var tmp = [];
-		size = parseInt(size)
 		for (let i = 1; i < (size + 1); i++) {
 			tmp.push(i);
 		}
@@ -154,37 +158,50 @@ const Visualizer = () => {
 			if (document.getElementsByClassName('arrayBar')[i] != null) {
 				document.getElementsByClassName('arrayBar')[i].style.backgroundColor =
 					colors.primaryColor;
+					// document.getElementsByClassName('arrayBar')[i].innerHTML=tmp[i];
 			}
 		}
-		if (able) setMainArray(tempArr);
+		setMainArray(tempArr);
 	};
-
-	const startSorting = algo => {
-		if (isRunning == false) {
-			if (worker) {
-				worker.terminate();
+	function reset(){
+		setRunning(false);
+		queueRef.current=null;
+		stateGameRef.current=false;
+		if (workerRef.current) {
+			workerRef.current.terminate();
+		}
+		populateArray();
+	}
+	function startSorting() {
+		if (isRunning === false) {
+			setRunning(true);
+			if (workerRef.current) {
+				workerRef.current.terminate();
 			}
 
 			// https://developers.google.com/web/updates/2017/09/autoplay-policy-changes#webaudio
 			if (audio.resume) {
 				audio.resume();
 			}
-			worker = new window.Worker("./sort-worker.js");
-			queue = [];
-			worker.onmessage = (e) => {
-				queue.push(e.data);
+			workerRef.current = new window.Worker("./sort-worker.js");
+			queueRef.current=[];
+			workerRef.current.onmessage = (e) => {
+				queueRef.current.push(e.data);
 			};
-			worker.postMessage([algo.value, mainArray]);
-			// setRunning(true);
-			isRunning=true;
+			workerRef.current.postMessage([algo.value, mainArray]);
+			stateGameRef.current=true;
+			lastIRef.current=-1;
+			lastJRef.current=-1;
+			lastDidIt.current=false;
 		}
 		else {
-			if (isPause == false) {
-				isPause=true;
-				console.log(isPause);
+			if (isPause === false) {
+				setPause(true);
+				stateGameRef.current=false;
 			}
 			else {
-				isPause=false;
+				setPause(false);
+				stateGameRef.current=true;
 			}
 		}
 	};
@@ -214,14 +231,14 @@ const Visualizer = () => {
 					<Box pad="medium" gap="small" >
 						<Select
 							disabled={isRunning}
-							defaultValue="Bubble Sort"
+							defaultValue={{ label: 'Bubble Sort', value: "bubbleSort" }}
 							size="medium"
 							placeholder="Select Sorting Algorithm"
 							value={algo}
 							options={options}
 							labelKey="label"
 							valueKey="value"
-							onChange={({ option }) => setAlgo(option)}
+							onChange={({ option }) => {setAlgo(option)}}
 							onClose={() => setOptions(algoOption)}
 							onSearch={text => {
 								// The line below escapes regular expression special characters:
@@ -236,25 +253,27 @@ const Visualizer = () => {
 							}}
 						/>
 						<Box  direction="row" align="center">
-						<FormField label={<Text size='medium' color='black'> Number of elements</Text>} style={{ color: "#1976D2" }}>
+						<FormField disabled={isRunning}
+						label={<Text size='medium' color='black'> Number of elements</Text>} style={{ color: "#1976D2" }}>
 							<TextInput placeholder="default is 10" onChange={event => { setArrayLength(event.target.value) }} />
 						</FormField>
-						<Cycle  color='#00B0FF' size='medium' onClick={() => {setGenArray(!genArray);}} 
+						<Cycle  color='#00B0FF' size='medium' onClick={() => {if (isRunning!==true) setGenArray(!genArray);}} 
 						className={genArray ? 'rotate down': 'rotate down1'} />
 						</Box>
 						<Button
+						className="playButton"
 							color="light-2"
 							primary
-							icon={isRunning == false ? <CirclePlay /> :(isPause == false ?<Pause />:<Resume/>)}
-							label={isRunning == false ? "Play" :(isPause == false ?"Pause":"Resume")}
+							icon={isRunning === false ? <CirclePlay /> :(isPause === false ?<Pause />:<Resume/>)}
+							label={isRunning === false ? "Play" :(isPause === false ?"Pause":"Resume")}
 							onClick={() => {startSorting(algo); }}
 						/>
-						<Button
+						<Button disabled={!isRunning}
 							color="light-2"
 							primary
 							icon={<Refresh />}
 							label="Reset"
-							onClick={() => { }}
+							onClick={() => {reset() }}
 						/>
 						<Text size="small">Speed:<span className="SpeedAnimation">{`${animationSpeed}`}</span></Text>
 						<RangeInput
@@ -298,7 +317,7 @@ const Visualizer = () => {
 									}}
 									key={item.idx}
 								>
-									{arrayLength < 29 && able && <span>{item.val}</span>}
+									{arrayLength < 29 && <span>{item.val}</span>}
 									{/* { able && <span>{item.val}</span>} */}
 								</div>
 							);

@@ -1,7 +1,6 @@
 function test(array, i, j) {
 
   postMessage(['test', i, j,array[i],array[j]]);
-
   return array[i] - array[j];
 }
 
