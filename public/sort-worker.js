@@ -1,4 +1,5 @@
 function test(array, i, j) {
+
   postMessage(['test', i, j,array[i],array[j]]);
 
   return array[i] - array[j];
@@ -10,6 +11,11 @@ function swap(array, i, j) {
   var temp = array[i];
   array[i] = array[j];
   array[j] = temp;
+}
+function finishSorted(array){
+  for( let i =0;i<array.length;i++){
+    postMessage(['finished', i]);
+  }
 }
 function bubbleSort(a) {
   var n = a.length;
@@ -26,6 +32,7 @@ function bubbleSort(a) {
         break;
     }
   }
+  finishSorted(a);
 }
   
   function cocktailSort(a) {
@@ -50,6 +57,7 @@ function bubbleSort(a) {
       }
       left = new_left;
     }
+    finishSorted(a);
   }
   
   function combSort(a) {
@@ -129,6 +137,8 @@ function bubbleSort(a) {
         swap(a, j, j - 1);
       }
     }
+    finishSorted(a);
+
   }
   
   function oddEvenSort(a) {
@@ -159,6 +169,7 @@ function bubbleSort(a) {
   
       swap(a, i, k);
     }
+    finishSorted(a);
   }
   
   function pivot(aa, type, left, right) {

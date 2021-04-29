@@ -1,17 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import colors from './colorCodes';
-import GithubIcon from '../Icons/GithubIcon';
-import { mergeSortAnimation } from '../algorithms/mergesort';
-import { insertionSort } from '../algorithms/insertion';
-import { selectionSort } from '../algorithms/selectionsort';
-import { bubbleSort } from '../algorithms/bubblesort';
-import { quicksort } from '../algorithms/quicksort';
-import { heapsort } from '../algorithms/heapsort';
 // stylesheet
 import './SortingVisualizer.css';
 import { RangeInput, Box, Button, Grid, Text, Select, FormField, TextInput } from 'grommet';
-import { Refresh, CirclePlay } from 'grommet-icons';
-import {startAlgo} from './worker'
+import { Refresh, CirclePlay, Pause, Resume,Cycle } from 'grommet-icons';
 const algoOption = [
 	{ label: 'Bubble Sort', value: "bubbleSort" },
 	{ label: 'Merge Sort', value: "mergeSort" },
@@ -19,7 +11,9 @@ const algoOption = [
 	{ label: 'Selection Sort', value: "selectionSort" },
 	{ label: 'Quick Sort', value: "quickSort" },
 	{ label: 'Heap Sort', value: "heapSort" },
-  ];
+	{ label: 'Cocktail Sort', value: "cocktailSort" },
+	{ label: 'Gnome Sort', value: "gnomeSort" },
+];
 const Visualizer = () => {
 	// state of the array
 	const [mainArray, setMainArray] = useState([]);
@@ -29,14 +23,17 @@ const Visualizer = () => {
 	const [sound, setSound] = useState(10);
 	const [algo, setAlgo] = useState('mergesort');
 	const [able, setAble] = useState(true);
+	const [genArray, setGenArray] = useState(true);
 	const [options, setOptions] = useState(algoOption);
+	var [isRunning, setRunning] = useState(false);
+	var [isPause, setPause] = useState(false);
 	var queue = null;
 	var worker = null;
-	var didIt=false;
-	var i=0;
-	var j=0;
+	var didIt = false;
+	var i = -1;
+	var j = -1;
 	var then = performance.now();
-
+	console.log("reload");
 	const audio = new AudioContext();
 	var master = audio.createGain();
 	master.gain.setValueAtTime(0.20, audio.currentTime);
@@ -56,89 +53,80 @@ const Visualizer = () => {
 	useEffect(() => {
 		if (able) populateArray(arrayLength);
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [arrayLength, algo]);
-
-	// ABLE / DISABLE BUTTONS ETC.
-	useEffect(() => {
-		const items = document.getElementsByClassName('able');
-
-		if (!able) {
-			for (let i = 0; i < items.length; i++) {
-				items[i].style.pointerEvents = 'none';
-				items[i].disabled = true;
-			}
-		} else {
-			for (let i = 0; i < items.length; i++) {
-				items[i].style.pointerEvents = 'auto';
-				items[i].disabled = false;
-			}
-		}
-	}, [able]);
+	}, [arrayLength, algo,genArray]);
 
 	useEffect(() => {
 		window.requestAnimationFrame(function tick(now) {
 			const arrayBars = document.getElementsByClassName('arrayBar');
-			const delay=parseInt(document.getElementsByClassName('SpeedAnimation')[0].innerHTML);
-			const fre=parseInt(document.getElementsByClassName('Frequency')[0].innerHTML);
-			const sound=parseInt(document.getElementsByClassName('Sound')[0].innerHTML);
+			const delay = parseInt(document.getElementsByClassName('SpeedAnimation')[0].innerHTML);
+			const fre = parseInt(document.getElementsByClassName('Frequency')[0].innerHTML);
+			const sound = parseInt(document.getElementsByClassName('Sound')[0].innerHTML);
 			master.gain.setValueAtTime(sound / 100, audio.currentTime);
-			const tmpLength=arrayLength;
-			if (now - then > delay) {
-				if(didIt==false){
-					var event = (queue || []).shift();
-					if (event) {
-						console.log(event);
-						i=event[1]
-						j=event[2]
-						if (event[0] == 'test') {
-							arrayBars[i].style.backgroundColor = colors.cyan;
-							arrayBars[j].style.backgroundColor = colors.cyan;
-
-							var factor = ((event[3] / tmpLength) + (event[4] /tmpLength) / 2);
-							var frequency = fre + (factor * fre);
-
-							tone.frequency.linearRampToValueAtTime(frequency, audio.currentTime);
-
-							track.gain.cancelScheduledValues(audio.currentTime);
-							track.gain.linearRampToValueAtTime(0.75, audio.currentTime);
-							track.gain.linearRampToValueAtTime(0, audio.currentTime + delay);
-						}
-
-						if (event[0] == 'swap') {
-							arrayBars[i].style.backgroundColor = colors.pivotActiveColor;
-							arrayBars[j].style.backgroundColor = colors.pivotActiveColor;
-							let temp = arrayBars[j].style.height;
-							arrayBars[j].style.height = arrayBars[i].style.height;
-							arrayBars[i].style.height = temp;
-							if (arrayLength<29){
-								let temp = arrayBars[j].innerHTML;
-								arrayBars[j].innerHTML = arrayBars[i].innerHTML;
-								arrayBars[i].innerHTML = temp;
+			const tmpLength = arrayLength;	
+			if (isPause == false && isRunning == true) {
+				if (now - then > delay) {
+					if (didIt == false) {
+						var event = (queue || []).shift();
+						if (event) {
+							if (event[0] == 'finished') {
+								arrayBars[event[1]].style.backgroundColor = colors.afterSortingColor;
+								tone.frequency.linearRampToValueAtTime(fre + (event[1] * fre), audio.currentTime);
+								track.gain.cancelScheduledValues(audio.currentTime);
+								track.gain.linearRampToValueAtTime(0.75, audio.currentTime);
+								track.gain.linearRampToValueAtTime(0, audio.currentTime + delay);
+								i = -1; j = -1;
 							}
-							var factor = ((event[3] / tmpLength) + (event[4] /tmpLength) / 2);
-							var frequency = fre - (factor * fre);
+							else {
+								i = event[1]
+								j = event[2]
+								if (event[0] == 'test') {
+									arrayBars[i].style.backgroundColor = colors.cyan;
+									arrayBars[j].style.backgroundColor = colors.cyan;
 
-							tone.frequency.linearRampToValueAtTime(frequency, audio.currentTime);
+									var factor = ((event[3] / tmpLength) + (event[4] / tmpLength) / 2);
+									var frequency = fre + (factor * fre);
+									tone.frequency.linearRampToValueAtTime(frequency, audio.currentTime);
 
-							track.gain.cancelScheduledValues(audio.currentTime);
-							track.gain.linearRampToValueAtTime(1, audio.currentTime);
-							track.gain.linearRampToValueAtTime(0, audio.currentTime + delay);
+									track.gain.cancelScheduledValues(audio.currentTime);
+									track.gain.linearRampToValueAtTime(0.75, audio.currentTime);
+									track.gain.linearRampToValueAtTime(0, audio.currentTime + delay);
+								}
 
+								if (event[0] == 'swap') {
+									arrayBars[i].style.backgroundColor = colors.pivotActiveColor;
+									arrayBars[j].style.backgroundColor = colors.pivotActiveColor;
+									let temp = arrayBars[j].style.height;
+									arrayBars[j].style.height = arrayBars[i].style.height;
+									arrayBars[i].style.height = temp;
+									if (arrayLength < 29) {
+										let temp = arrayBars[j].innerHTML;
+										arrayBars[j].innerHTML = arrayBars[i].innerHTML;
+										arrayBars[i].innerHTML = temp;
+									}
+									var factor = ((event[3] / tmpLength) + (event[4] / tmpLength) / 2);
+									var frequency = fre - (factor * fre);
 
+									tone.frequency.linearRampToValueAtTime(frequency, audio.currentTime);
+
+									track.gain.cancelScheduledValues(audio.currentTime);
+									track.gain.linearRampToValueAtTime(1, audio.currentTime);
+									track.gain.linearRampToValueAtTime(0, audio.currentTime + delay);
+								}
+							}
+						} else {
+							track.gain.cancelScheduledValues(0);
+							track.gain.linearRampToValueAtTime(0, audio.currentTime);
 						}
-						// arrayBars[i].style.backgroundColor = colors.primaryColor;
-						// arrayBars[j].style.backgroundColor = colors.primaryColor;
-					} else {
-						track.gain.cancelScheduledValues(0);
-						track.gain.linearRampToValueAtTime(0, audio.currentTime);
 					}
+					else {
+						if (i != -1 && j != -1) {
+							arrayBars[i].style.backgroundColor = colors.primaryColor;
+							arrayBars[j].style.backgroundColor = colors.primaryColor;
+						}
+					}
+					didIt = !didIt;
+					then = now;
 				}
-				else{
-					arrayBars[i].style.backgroundColor = colors.primaryColor;
-					arrayBars[j].style.backgroundColor = colors.primaryColor;
-				}
-				didIt=!didIt;
-				then = now;
 			}
 			window.requestAnimationFrame(tick);
 
@@ -147,17 +135,17 @@ const Visualizer = () => {
 
 	const populateArray = size => {
 		var myDiv = document.getElementsByClassName("visualizeContainer");
-    	myDiv.innerHTML = "";//remove all child elements inside of myDiv
+		myDiv.innerHTML = "";//remove all child elements inside of myDiv
 		const tempArr = [];
 		var tmp = [];
-		size=parseInt(size)
+		size = parseInt(size)
 		for (let i = 1; i < (size + 1); i++) {
 			tmp.push(i);
 		}
 		tmp.sort(function (a, b) {
 			return Math.random() > 0.5 ? -1 : 1;
 		});
- 		for (let i = 0; i < tmp.length; i++) {
+		for (let i = 0; i < tmp.length; i++) {
 			const item = {
 				idx: i,
 				val: tmp[i],
@@ -171,66 +159,34 @@ const Visualizer = () => {
 		if (able) setMainArray(tempArr);
 	};
 
-	// colors every elements afte sorting
-	const colorEveryElement = (arr, counter) => {
-		setTimeout(() => {
-			const sortedArray = [];
-			for (let i = 0; i < arr.length; i++) {
-				document.getElementsByClassName('arrayBar')[i].style.backgroundColor =
-					colors.afterSortingColor;
-
-				sortedArray.push({
-					idx: i,
-					val: arr[i],
-				});
-			}
-			setMainArray(sortedArray);
-			setAble(true);
-		}, counter * animationSpeed);
-	};
-
 	const startSorting = algo => {
-		if (worker) {
-			worker.terminate();
-		  }
-		  
-		// https://developers.google.com/web/updates/2017/09/autoplay-policy-changes#webaudio
-		if (audio.resume) {
-			audio.resume();
+		if (isRunning == false) {
+			if (worker) {
+				worker.terminate();
+			}
+
+			// https://developers.google.com/web/updates/2017/09/autoplay-policy-changes#webaudio
+			if (audio.resume) {
+				audio.resume();
+			}
+			worker = new window.Worker("./sort-worker.js");
+			queue = [];
+			worker.onmessage = (e) => {
+				queue.push(e.data);
+			};
+			worker.postMessage([algo.value, mainArray]);
+			// setRunning(true);
+			isRunning=true;
 		}
-		worker = new window.Worker("./sort-worker.js");
-		queue=[];
-		worker.onmessage = (e) => {
-			queue.push(e.data);
-		};
-		worker.postMessage([algo.value,mainArray]);
-
-		// switch (algo) {
-		// 	case 'bubble sort':
-		// 		bubbleSortAnimate();
-		// 		break;
-
-		// 	case 'merge sort':
-		// 		mergeSort();
-		// 		break;
-
-		// 	case 'selection sort':
-		// 		selectionSortAnimate();
-		// 		break;
-
-		// 	case 'insertion sort':
-		// 		insertionSortAnimate();
-		// 		break;
-		// 	case 'quick sort':
-		// 		quicksortAnimate();
-		// 		break;
-		// 	case 'heap sort':
-		// 		heapsortAnimate();
-		// 		break;
-		// 	default:
-		// 		mergeSort();
-		// 		break;
-		// }
+		else {
+			if (isPause == false) {
+				isPause=true;
+				console.log(isPause);
+			}
+			else {
+				isPause=false;
+			}
+		}
 	};
 
 	return (
@@ -248,15 +204,17 @@ const Visualizer = () => {
 				areas={[
 					['sidebar', 'main'],
 				]}
-				style={{width:"100%"}}
+				style={{ width: "100%" }}
 			>
 				<Box direction="column" align="center" gap="medium" fill="vertical">
 					<Box align="center">
+						<Text>Sound of</Text>
 						<Text>Sorting Algorithm</Text>
-						<Text>Visualizer</Text>
 					</Box>
-					<Box >
+					<Box pad="medium" gap="small" >
 						<Select
+							disabled={isRunning}
+							defaultValue="Bubble Sort"
 							size="medium"
 							placeholder="Select Sorting Algorithm"
 							value={algo}
@@ -277,23 +235,19 @@ const Visualizer = () => {
 								setOptions(algoOption.filter(o => exp.test(o)));
 							}}
 						/>
-						{/* <Select
-						options={algoList}
-						value={algo}
-						onChange={({ option }) => setAlgo(option)}
-						/> */}
-					</Box>
-					<Box pad="medium">
-						
-						<FormField label={<Text size='medium' color='black'> Number of elements</Text>} style={{color: "#1976D2"}}>
-							<TextInput placeholder="default is 10" onChange={event => {setArrayLength(event.target.value)}} />
+						<Box  direction="row" align="center">
+						<FormField label={<Text size='medium' color='black'> Number of elements</Text>} style={{ color: "#1976D2" }}>
+							<TextInput placeholder="default is 10" onChange={event => { setArrayLength(event.target.value) }} />
 						</FormField>
+						<Cycle  color='#00B0FF' size='medium' onClick={() => {setGenArray(!genArray);}} 
+						className={genArray ? 'rotate down': 'rotate down1'} />
+						</Box>
 						<Button
 							color="light-2"
 							primary
-							icon={<CirclePlay />}
-							label="Play"
-							onClick={() => startSorting(algo)}
+							icon={isRunning == false ? <CirclePlay /> :(isPause == false ?<Pause />:<Resume/>)}
+							label={isRunning == false ? "Play" :(isPause == false ?"Pause":"Resume")}
+							onClick={() => {startSorting(algo); }}
 						/>
 						<Button
 							color="light-2"
@@ -304,7 +258,7 @@ const Visualizer = () => {
 						/>
 						<Text size="small">Speed:<span className="SpeedAnimation">{`${animationSpeed}`}</span></Text>
 						<RangeInput
-							
+
 							min={1}
 							max={200}
 							step={10}
@@ -325,22 +279,22 @@ const Visualizer = () => {
 							max={510}
 							step={50}
 							value={sound}
-							onChange={event => {setSound(parseInt(event.target.value, 10))}}
+							onChange={event => { setSound(parseInt(event.target.value, 10)) }}
 						/>
 					</Box>
 
 				</Box>
 
-				<Box gridArea="main" fill="vertical" style={{ width: '100%', height: '100%',display:'flex' }}>
+				<Box gridArea="main" fill="vertical" style={{ width: '100%', height: '100%', display: 'flex' }}>
 					<div className='visualizeContainer'>
 						{mainArray.map(item => {
 							return (
 								<div
 									className='arrayBar'
 									style={{
-										height: `${item.val*100/mainArray.length}%`,
+										height: `${item.val * 100 / mainArray.length}%`,
 										backgroundColor: colors.primaryColor,
-										width: `${100/mainArray.length}%`,
+										width: `${100 / mainArray.length}%`,
 									}}
 									key={item.idx}
 								>
@@ -354,81 +308,6 @@ const Visualizer = () => {
 
 			</Grid>
 		</Box>
-
-		// <div className='container'>
-		// <div className='visualizeContainer'>
-		// 	{mainArray.map(item => {
-		// 		return (
-		// 			<div
-		// 				className='arrayBar'
-		// 				style={{
-		// 					height: `${item.val}px`,
-		// 					backgroundColor: colors.primaryColor,
-		// 				}}
-		// 				key={item.idx}
-		// 			>
-		// 				{arrayLength < 29 && able && <span>{item.val}</span>}
-		// 			</div>
-		// 		);
-		// 	})}
-		// </div>
-		// 	<div className='sidebar'>
-		// 		<header>
-		// 			Sorting Algorithm <br /> Visualizer
-		// 		</header>
-		// 		<div className='select-box able'>
-		// 			<label htmlFor='algo'>select algorithm</label>
-		// 			<select
-		// 				name='algo'
-		// 				id='select'
-		// 				value={algo}
-		// 				onChange={e => setAlgo(e.target.value)}
-		// 			>
-		// 				<option value='bubblesort'>bubble sort</option>
-		// 				<option value='mergesort'>merge sort</option>
-		// 				<option value='insertionsort'>insertion sort</option>
-		// 				<option value='selectionsort'>selection sort</option>
-		// 				<option value='quicksort'>quick sort</option>
-		// 				<option value='heapsort'>heap sort</option>
-		// 			</select>
-		// 		</div>
-		// 		<button className='button able' onClick={() => startSorting(algo)}>
-		// 			Sort
-		// 		</button>
-
-		// 		<button
-		// 			onClick={() => populateArray(arrayLength)}
-		// 			className='new-arr-btn button able'
-		// 		>
-		// 			Reset
-		// 		</button>
-
-		// 		<div className='slider-container'>
-		// 			<label>Length of Array</label>
-		// 			<input
-		// 				className='input-range able'
-		// 				type='range'
-		// 				value={arrayLength}
-		// 				onChange={e => setArrayLength(e.target.value)}
-		// 				min='7'
-		// 				max='150'
-		// 			/>
-		// 		</div>
-		// 		<div className='slider-container'>
-		// 			<label>Speed</label>
-		// 			<input
-		// 				className='input-range able'
-		// 				type='range'
-		// 				value={500 - animationSpeed}
-		// 				onChange={e => setAnimationSpeed(500 - e.target.value)}
-		// 				min='350'
-		// 				max='499'
-		// 			/>
-		// 		</div>
-
-		// 		<GithubIcon className={'github-icon'} />
-		// 	</div>
-		// </div>
 	);
 };
 
