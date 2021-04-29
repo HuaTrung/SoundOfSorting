@@ -174,18 +174,7 @@ function bubbleSort(a) {
   function pivot(aa, type, left, right) {
     if (typeof(left) === 'undefined') left = 0;
     if (typeof(right) === 'undefined') right = aa.length() - 1;
-    var p = null;
-    if (type === 'random') {
-      var p = left + Math.floor((right - left + 1) * Math.random());
-    } else if (type === 'first') {
-      p = left;
-    } else if (type === 'last') {
-      p = right;
-    } else if (type === 'middle') {
-      p = Math.round((left + right) / 2);
-    } else {
-      throw new TypeError('Invalid p type ' + type);
-    }
+    var p =Math.round((left + right) / 2);
   
     return p;
   }
@@ -222,6 +211,7 @@ function bubbleSort(a) {
   }
   
 onmessage = (e) => {
+  console.log(e.data)
     const arr = e.data[1].map(item => item.val);
     var sort = eval(e.data[0]);
     sort(arr, e.data[2]);
