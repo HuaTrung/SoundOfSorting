@@ -17,7 +17,7 @@ const algoOption = [
 const Visualizer = () => {
 	// state of the array
 	const [mainArray, setMainArray] = useState([]);
-	const [arrayLength, setArrayLength] = useState(20);
+	const [arrayLength, setArrayLength] = useState(100);
 	const [animationSpeed, setAnimationSpeed] = useState(100);
 	const [frequency, setFrequency] = useState(100);
 	const [sound, setSound] = useState(50);
