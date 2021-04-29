@@ -31,7 +31,6 @@ function bubbleSort(a) {
         break;
     }
   }
-  finishSorted(a);
 }
   
   function cocktailSort(a) {
@@ -56,7 +55,6 @@ function bubbleSort(a) {
       }
       left = new_left;
     }
-    finishSorted(a);
   }
   
   function combSort(a) {
@@ -80,6 +78,7 @@ function bubbleSort(a) {
         }
       }
     }
+
   }
   
   function gnomeSort(a) {
@@ -136,7 +135,6 @@ function bubbleSort(a) {
         swap(a, j, j - 1);
       }
     }
-    finishSorted(a);
 
   }
   
@@ -168,7 +166,6 @@ function bubbleSort(a) {
   
       swap(a, i, k);
     }
-    finishSorted(a);
   }
   
   function pivot(aa, type, left, right) {
@@ -211,8 +208,8 @@ function bubbleSort(a) {
   }
   
 onmessage = (e) => {
-  console.log(e.data)
     const arr = e.data[1].map(item => item.val);
     var sort = eval(e.data[0]);
     sort(arr, e.data[2]);
+    finishSorted(arr);
   }; 

@@ -6,7 +6,8 @@ import { RangeInput, Box, Button, Grid, Text, Select, FormField, TextInput } fro
 import { Refresh, CirclePlay, Pause, Resume,Cycle } from 'grommet-icons';
 const algoOption = [
 	{ label: 'Bubble Sort', value: "bubbleSort" },
-	{ label: 'Merge Sort', value: "mergeSort" },
+	{ label: 'Odd Even Sort', value: "oddEvenSort" },
+	{ label: 'Comb Sort', value: "combSort" },
 	{ label: 'Insertion Sort', value: "insertionSort" },
 	{ label: 'Selection Sort', value: "selectionSort" },
 	{ label: 'Quick Sort', value: "quickSort" },
@@ -69,7 +70,6 @@ const Visualizer = () => {
 						var event = (queueRef.current || []).shift();
 						if (event) {
 							if (event[0] === 'finished') {
-								console.log(event[1])
 								arrayBars[event[1]].style.backgroundColor = colors.afterSortingColor;
 								tone.frequency.linearRampToValueAtTime(fre + (event[1] * fre), audio.currentTime);
 								track.gain.cancelScheduledValues(audio.currentTime);
