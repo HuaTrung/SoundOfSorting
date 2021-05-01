@@ -5,17 +5,15 @@ import './App.css';
 import { grommet } from 'grommet/themes';
 
 const theme = {
-	global: {
-	  font: {
-		family: 'Roboto',
-		size: '18px',
-		height: '20px',
+	"global": {
+	  "colors": {
+		"brand": '#0069c0',
 	  },
 	},
   };
 function App() {
 	return (
-		<Grommet full theme={grommet} >
+		<Grommet full theme={theme} >
 			<Visualizer />
 		</Grommet>
 	);

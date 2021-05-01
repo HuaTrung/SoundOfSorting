@@ -221,7 +221,7 @@ const Visualizer = () => {
 			fill="vertical"
 			className="myContainer"
 			direction="row"
-			border={{ color: '#00b0ff', size: 'large' }}
+			border={{ color: 'brand', size: 'large' }}
 		>
 			<Grid
 				className="myContainer"
@@ -233,7 +233,7 @@ const Visualizer = () => {
 				]}
 				style={{ width: "100%" }}
 			>
-				<Box direction="column" align="center" gap="medium" fill="vertical">
+				<Box direction="column" align="center" gap="medium" fill="vertical" border={{ color: 'brand', size: 'large', side:"right" }}>
 					<Box align="center">
 						<Text>Sound of</Text>
 						<Text>Sorting Algorithm</Text>
@@ -270,7 +270,7 @@ const Visualizer = () => {
 						<Cycle  color='#00B0FF' size='medium' onClick={() => {if (isRunning!==true) setGenArray(!genArray);}} 
 						className={genArray ? 'rotate down': 'rotate down1'} />
 						</Box>
-						<Button
+						<Box direction="row" align="center"><Button
 						className="playButton"
 							color="light-2"
 							primary
@@ -284,7 +284,8 @@ const Visualizer = () => {
 							icon={<Refresh />}
 							label="Reset"
 							onClick={() => {reset() }}
-						/>
+						/></Box>
+							<Box direction="row" align="center">
 						<Text size="small">Speed:<span className="SpeedAnimation">{`${animationSpeed}`}</span></Text>
 						<RangeInput
 
@@ -294,6 +295,8 @@ const Visualizer = () => {
 							value={animationSpeed}
 							onChange={event => setAnimationSpeed(parseInt(event.target.value, 10))}
 						/>
+						</Box>
+						<Box direction="row" align="center">
 						<Text size="small">Frequency: <span className="Frequency">{`${frequency}`}</span></Text>
 						<RangeInput
 							min={100}
@@ -301,7 +304,8 @@ const Visualizer = () => {
 							step={50}
 							value={frequency}
 							onChange={event => setFrequency(parseInt(event.target.value, 10))}
-						/>
+						/></Box>
+						<Box direction="row" align="center">
 						<Text size="small">Sound: <span className="Sound">{`${sound}`}</span></Text>
 						<RangeInput
 							min={10}
@@ -310,6 +314,7 @@ const Visualizer = () => {
 							value={sound}
 							onChange={event => { setSound(parseInt(event.target.value, 10)) }}
 						/>
+						</Box>
 						 <Tip content="Number of testing and comparing operations">
 						<Text>Total operations: <span className="Operations">0</span></Text>
 						</Tip>
