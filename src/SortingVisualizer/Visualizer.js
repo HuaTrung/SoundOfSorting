@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import colors from './colorCodes';
 // stylesheet
 import './SortingVisualizer.css';
-import { RangeInput, Box, Button, Grid, Text, Select, FormField, TextInput } from 'grommet';
+import { RangeInput, Box, Button, Grid, Text, Select, FormField, TextInput,Tip } from 'grommet';
 import { Refresh, CirclePlay, Pause, Resume,Cycle } from 'grommet-icons';
 const algoOption = [
 	{ label: 'Bubble Sort', value: "bubbleSort" },
@@ -19,20 +19,20 @@ const Visualizer = () => {
 	// state of the array
 	const [mainArray, setMainArray] = useState([]);
 	const [arrayLength, setArrayLength] = useState(100);
-	const [animationSpeed, setAnimationSpeed] = useState(100);
+	const [animationSpeed, setAnimationSpeed] = useState(1);
 	const [frequency, setFrequency] = useState(100);
-	const [sound, setSound] = useState(50);
-	const [algo, setAlgo] = useState({ label: 'Bubble Sort', value: "bubbleSort" });
+	const [sound, setSound] = useState(10);
+	const [algo, setAlgo] = useState({ label: 'Bubble Sort', value: "quickSort" });
 	const [genArray, setGenArray] = useState(true);
 	const [options, setOptions] = useState(algoOption);
 	var [isRunning, setRunning] = useState(false);
 	var [isPause, setPause] = useState(false);
-	const workerRef = React.useRef();
-	const queueRef = React.useRef();
-	const stateGameRef = React.useRef();
-	const lastIRef = React.useRef();
-	const lastJRef = React.useRef();
-	const lastDidIt = React.useRef();
+	var workerRef = React.useRef();
+	var queueRef = React.useRef();
+	var stateGameRef = React.useRef();
+	var lastIRef = React.useRef();
+	var lastJRef = React.useRef();
+	var lastDidIt = React.useRef();
 	var then = performance.now();
 	const audio = new AudioContext();
 	var master = audio.createGain();
@@ -91,11 +91,14 @@ const Visualizer = () => {
 									track.gain.cancelScheduledValues(audio.currentTime);
 									track.gain.linearRampToValueAtTime(0.75, audio.currentTime);
 									track.gain.linearRampToValueAtTime(0, audio.currentTime + delay);
+									document.getElementsByClassName('Operations')[0].innerHTML=
+									parseInt(document.getElementsByClassName('Operations')[0].innerHTML)+1
 								}
 
 								if (event[0] === 'swap') {
 									arrayBars[lastIRef.current].style.backgroundColor = colors.pivotActiveColor;
 									arrayBars[lastJRef.current].style.backgroundColor = colors.pivotActiveColor;
+									
 									let temp = arrayBars[lastJRef.current].style.height;
 									arrayBars[lastJRef.current].style.height = arrayBars[lastIRef.current].style.height;
 									arrayBars[lastIRef.current].style.height = temp;
@@ -165,12 +168,19 @@ const Visualizer = () => {
 	};
 	function reset(){
 		setRunning(false);
+		setMainArray([]);
+		setGenArray(!genArray);
 		queueRef.current=null;
 		stateGameRef.current=false;
+		document.getElementsByClassName('Operations')[0].innerHTML=0;
 		if (workerRef.current) {
 			workerRef.current.terminate();
 		}
-		populateArray();
+		lastIRef.current = -1;
+		lastJRef.current = -1;
+		lastDidIt.current = false;
+		then = performance.now();
+		// populateArray();
 	}
 	function startSorting() {
 		if (isRunning === false) {
@@ -279,7 +289,7 @@ const Visualizer = () => {
 						<RangeInput
 
 							min={1}
-							max={200}
+							max={191}
 							step={10}
 							value={animationSpeed}
 							onChange={event => setAnimationSpeed(parseInt(event.target.value, 10))}
@@ -300,6 +310,9 @@ const Visualizer = () => {
 							value={sound}
 							onChange={event => { setSound(parseInt(event.target.value, 10)) }}
 						/>
+						 <Tip content="Number of testing and comparing operations">
+						<Text>Total operations: <span className="Operations">0</span></Text>
+						</Tip>
 					</Box>
 
 				</Box>
