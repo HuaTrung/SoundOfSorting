@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import colors from './colorCodes';
 // stylesheet
 import './SortingVisualizer.css';
-import { RangeInput, Box, Button, Grid, Text, Select, FormField, TextInput,Tip } from 'grommet';
-import { Refresh, CirclePlay, Pause, Resume,Cycle } from 'grommet-icons';
+import { RangeInput, Box, Button, Grid, Text, Select, FormField, TextInput, Tip } from 'grommet';
+import { Refresh, CirclePlay, Pause, Resume, Cycle, BarChart } from 'grommet-icons';
 const algoOption = [
 	{ label: 'Bubble Sort', value: "bubbleSort" },
 	{ label: 'Odd Even Sort', value: "oddEvenSort" },
@@ -15,6 +15,13 @@ const algoOption = [
 	{ label: 'Cocktail Sort', value: "cocktailSort" },
 	{ label: 'Gnome Sort', value: "gnomeSort" },
 ];
+const background_images = [
+	"https://visme.co/blog/wp-content/uploads/2017/07/50-Beautiful-and-Minimalist-Presentation-Backgrounds-02.jpg",
+	"https://visme.co/blog/wp-content/uploads/2017/07/50-Beautiful-and-Minimalist-Presentation-Backgrounds-03.jpg",
+	"https://image.freepik.com/free-photo/hand-painted-watercolor-background-with-sky-clouds-shape_24972-1095.jpg",
+	"https://image.freepik.com/free-vector/winter-background-with-pastel-color-brushes-leaves_220290-42.jpg"
+]
+const background_image = background_images[Math.round(Math.random() * 3)];
 const Visualizer = () => {
 	// state of the array
 	const [mainArray, setMainArray] = useState([]);
@@ -53,7 +60,7 @@ const Visualizer = () => {
 	useEffect(() => {
 		populateArray();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [arrayLength,genArray]);
+	}, [arrayLength, genArray]);
 
 	useEffect(() => {
 		window.requestAnimationFrame(function tick(now) {
@@ -91,14 +98,14 @@ const Visualizer = () => {
 									track.gain.cancelScheduledValues(audio.currentTime);
 									track.gain.linearRampToValueAtTime(0.75, audio.currentTime);
 									track.gain.linearRampToValueAtTime(0, audio.currentTime + delay);
-									document.getElementsByClassName('Operations')[0].innerHTML=
-									parseInt(document.getElementsByClassName('Operations')[0].innerHTML)+1
+									document.getElementsByClassName('Operations')[0].innerHTML =
+										parseInt(document.getElementsByClassName('Operations')[0].innerHTML) + 1
 								}
 
 								if (event[0] === 'swap') {
 									arrayBars[lastIRef.current].style.backgroundColor = colors.pivotActiveColor;
 									arrayBars[lastJRef.current].style.backgroundColor = colors.pivotActiveColor;
-									
+
 									let temp = arrayBars[lastJRef.current].style.height;
 									arrayBars[lastJRef.current].style.height = arrayBars[lastIRef.current].style.height;
 									arrayBars[lastIRef.current].style.height = temp;
@@ -141,7 +148,7 @@ const Visualizer = () => {
 	});
 
 	function populateArray() {
-		var size=parseInt(arrayLength);
+		var size = parseInt(arrayLength);
 		var myDiv = document.getElementsByClassName("visualizeContainer");
 		myDiv.innerHTML = "";//remove all child elements inside of myDiv
 		const tempArr = [];
@@ -161,18 +168,18 @@ const Visualizer = () => {
 			if (document.getElementsByClassName('arrayBar')[i] != null) {
 				document.getElementsByClassName('arrayBar')[i].style.backgroundColor =
 					colors.primaryColor;
-					// document.getElementsByClassName('arrayBar')[i].innerHTML=tmp[i];
+				// document.getElementsByClassName('arrayBar')[i].innerHTML=tmp[i];
 			}
 		}
 		setMainArray(tempArr);
 	};
-	function reset(){
+	function reset() {
 		setRunning(false);
 		setMainArray([]);
 		setGenArray(!genArray);
-		queueRef.current=null;
-		stateGameRef.current=false;
-		document.getElementsByClassName('Operations')[0].innerHTML=0;
+		queueRef.current = null;
+		stateGameRef.current = false;
+		document.getElementsByClassName('Operations')[0].innerHTML = 0;
 		if (workerRef.current) {
 			workerRef.current.terminate();
 		}
@@ -194,24 +201,24 @@ const Visualizer = () => {
 				audio.resume();
 			}
 			workerRef.current = new window.Worker("./sort-worker.js");
-			queueRef.current=[];
+			queueRef.current = [];
 			workerRef.current.onmessage = (e) => {
 				queueRef.current.push(e.data);
 			};
 			workerRef.current.postMessage([algo.value, mainArray]);
-			stateGameRef.current=true;
-			lastIRef.current=-1;
-			lastJRef.current=-1;
-			lastDidIt.current=false;
+			stateGameRef.current = true;
+			lastIRef.current = -1;
+			lastJRef.current = -1;
+			lastDidIt.current = false;
 		}
 		else {
 			if (isPause === false) {
 				setPause(true);
-				stateGameRef.current=false;
+				stateGameRef.current = false;
 			}
 			else {
 				setPause(false);
-				stateGameRef.current=true;
+				stateGameRef.current = true;
 			}
 		}
 	};
@@ -221,19 +228,26 @@ const Visualizer = () => {
 			fill="vertical"
 			className="myContainer"
 			direction="row"
-			border={{ color: 'brand', size: 'large' }}
+			border={{ color: 'brand', size: 'large', style: 'solid' }}
+			background={{
+				"opacity": "medium",
+				"repeat": "no-repeat",
+				"size": "cover",
+				"image": "url(" + background_image + ")"
+			}}
 		>
 			<Grid
 				className="myContainer"
 				rows={['flex']}
-				columns={['1/4', '3/4']}
+
 				gap="small"
+				columns={['1/4', '3/4']}
 				areas={[
 					['sidebar', 'main'],
 				]}
 				style={{ width: "100%" }}
 			>
-				<Box direction="column" align="center" gap="medium" fill="vertical" border={{ color: 'brand', size: 'large', side:"right" }}>
+				<Box direction="column" align="center" gap="medium" fill="vertical" border={{ color: 'brand', size: 'large', side: "right" }}>
 					<Box align="center">
 						<Text>Sound of</Text>
 						<Text>Sorting Algorithm</Text>
@@ -248,7 +262,7 @@ const Visualizer = () => {
 							options={options}
 							labelKey="label"
 							valueKey="value"
-							onChange={({ option }) => {setAlgo(option)}}
+							onChange={({ option }) => { setAlgo(option) }}
 							onClose={() => setOptions(algoOption)}
 							onSearch={text => {
 								// The line below escapes regular expression special characters:
@@ -262,62 +276,97 @@ const Visualizer = () => {
 								setOptions(algoOption.filter(o => exp.test(o)));
 							}}
 						/>
-						<Box  direction="row" align="center">
-						<FormField disabled={isRunning}
-						label={<Text size='medium' color='black'> Number of elements</Text>} style={{ color: "#1976D2" }}>
-							<TextInput placeholder="default is 100" onChange={event => { setArrayLength(event.target.value) }} />
-						</FormField>
-						<Cycle  color='#00B0FF' size='medium' onClick={() => {if (isRunning!==true) setGenArray(!genArray);}} 
-						className={genArray ? 'rotate down': 'rotate down1'} />
-						</Box>
-						<Box direction="row" align="center"><Button
-						className="playButton"
-							color="light-2"
-							primary
-							icon={isRunning === false ? <CirclePlay /> :(isPause === false ?<Pause />:<Resume/>)}
-							label={isRunning === false ? "Play" :(isPause === false ?"Pause":"Resume")}
-							onClick={() => {startSorting(algo); }}
-						/>
-						<Button disabled={!isRunning}
-							color="light-2"
-							primary
-							icon={<Refresh />}
-							label="Reset"
-							onClick={() => {reset() }}
-						/></Box>
-							<Box direction="row" align="center">
-						<Text size="small">Speed:<span className="SpeedAnimation">{`${animationSpeed}`}</span></Text>
-						<RangeInput
+						<Box direction="row" align="center" gap="xsmall">
 
-							min={1}
-							max={191}
-							step={10}
-							value={animationSpeed}
-							onChange={event => setAnimationSpeed(parseInt(event.target.value, 10))}
-						/>
+							<TextInput icon={<BarChart color="brand" />} placeholder="Enter the length XD" onChange={event => { setArrayLength(event.target.value) }} />
+							<Button
+								disabled={isRunning}
+								color="light-2"
+								primary
+								icon={<Cycle color="brand" />}
+								onClick={() => { if (isRunning !== true) setGenArray(!genArray); }}
+								className={genArray ? 'rotate down' : 'rotate down1'}
+							/>
+
 						</Box>
-						<Box direction="row" align="center">
-						<Text size="small">Frequency: <span className="Frequency">{`${frequency}`}</span></Text>
-						<RangeInput
-							min={100}
-							max={1500}
-							step={50}
-							value={frequency}
-							onChange={event => setFrequency(parseInt(event.target.value, 10))}
-						/></Box>
-						<Box direction="row" align="center">
-						<Text size="small">Sound: <span className="Sound">{`${sound}`}</span></Text>
-						<RangeInput
-							min={10}
-							max={510}
-							step={50}
-							value={sound}
-							onChange={event => { setSound(parseInt(event.target.value, 10)) }}
+						<Box direction="row" align="center" gap="small"><Button
+							className="playButton"
+							color="light-2"
+							primary
+							fill={false}
+							icon={isRunning === false ? <CirclePlay color="brand" /> : (isPause === false ? <Pause color="brand" /> : <Resume color="brand" />)}
+							label={isRunning === false ? "Play" : (isPause === false ? "Pause" : "Resume")}
+							onClick={() => { startSorting(algo); }}
 						/>
+							<Button disabled={!isRunning}
+								color="light-2"
+								primary
+								icon={<Refresh color="brand" />}
+								type="reset"
+								label="reset"
+								onClick={() => { reset() }}
+							/>
+
+
 						</Box>
-						 <Tip content="Number of testing and comparing operations">
-						<Text>Total operations: <span className="Operations">0</span></Text>
+						<Box >
+							<Grid
+								rows={['flex']}
+								columns={['1/3', '2/3']}
+								gap={{ "row": "large", "column": "small" }}
+								pad="small"
+								areas={[
+									['nav', 'main'],
+								]}
+							>
+								<Box gridArea="nav" gap="xsmall">
+									<Text size="medium">Speed:<span className="SpeedAnimation">{`${animationSpeed}`}</span></Text>
+									<Text size="medium">Freq: <span className="Frequency">{`${frequency}`}</span></Text>
+									<Text size="medium">Sound: <span className="Sound">{`${sound}`}</span></Text>
+
+								</Box>
+								<Box gridArea="main" >
+
+									<RangeInput
+
+										min={1}
+										max={191}
+										step={10}
+										value={animationSpeed}
+										onChange={event => setAnimationSpeed(parseInt(event.target.value, 10))}
+									/>
+									<RangeInput
+										min={100}
+										max={1500}
+										step={50}
+										value={frequency}
+										onChange={event => setFrequency(parseInt(event.target.value, 10))}
+									/>
+									<RangeInput
+										min={10}
+										max={510}
+										step={50}
+										value={sound}
+										onChange={event => { setSound(parseInt(event.target.value, 10)) }}
+									/>
+								</Box>
+							</Grid>
+						</Box>
+
+						<Tip content="Number of testing and comparing operations">
+							<Text>Total operations: <span className="Operations">0</span></Text>
 						</Tip>
+						<Box
+						height="small"
+						 background={{
+						"dark": true,
+						"position": "bottom",
+						"repeat": "no-repeat",
+						"size": "contain",
+						"image": "url(https://c.tenor.com/HJvqN2i4Zs4AAAAj/milk-and-mocha-cute.gif)"
+						}}>
+							
+						</Box>
 					</Box>
 
 				</Box>
