@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import colors from './colorCodes';
 // stylesheet
 import './SortingVisualizer.css';
-import { RangeInput, Box, Button, Grid, Text, Select, FormField, TextInput, Tip } from 'grommet';
-import { Refresh, CirclePlay, Pause, Resume, Cycle, BarChart } from 'grommet-icons';
+import { RangeInput, Box, Button, Grid, Text, Select, FormField, TextInput, Tip,Layer } from 'grommet';
+import { Refresh, CirclePlay, Pause, Resume, Cycle, BarChart, HelpOption, FacebookOption, Favorite, LinkedinOption, FormClose, StatusGood } from 'grommet-icons';
 const algoOption = [
 	{ label: 'Bubble Sort', value: "bubbleSort" },
 	{ label: 'Odd Even Sort', value: "oddEvenSort" },
@@ -22,8 +22,15 @@ const background_images = [
 	"https://image.freepik.com/free-vector/winter-background-with-pastel-color-brushes-leaves_220290-42.jpg"
 ]
 const background_image = background_images[Math.round(Math.random() * 3)];
+const background_musics = [
+	"https://img.fireden.net/co/image/1524/97/1524976384689.gif",
+	"https://c.tenor.com/HJvqN2i4Zs4AAAAj/milk-and-mocha-cute.gif",
+	"https://acegif.com/wp-content/uploads/2021/4fh5wi/pepefrg-4.gif",
+]
+const background_music = background_musics[Math.round(Math.random() * 2)];
 const Visualizer = () => {
 	// state of the array
+	const [open, setOpen] = React.useState();
 	const [mainArray, setMainArray] = useState([]);
 	const [arrayLength, setArrayLength] = useState(100);
 	const [animationSpeed, setAnimationSpeed] = useState(1);
@@ -40,6 +47,8 @@ const Visualizer = () => {
 	var lastIRef = React.useRef();
 	var lastJRef = React.useRef();
 	var lastDidIt = React.useRef();
+	var tooltip = React.createRef();
+
 	var then = performance.now();
 	const audio = new AudioContext();
 	var master = audio.createGain();
@@ -146,6 +155,13 @@ const Visualizer = () => {
 			window.requestAnimationFrame(tick);
 		})
 	});
+	const onOpen = () => {
+		setOpen(true);
+		setTimeout(() => {
+		  setOpen(undefined);
+		}, 3000);
+	  };
+	  const onClose = () => setOpen(undefined);
 
 	function populateArray() {
 		var size = parseInt(arrayLength);
@@ -268,17 +284,54 @@ const Visualizer = () => {
 								// The line below escapes regular expression special characters:
 								// [ \ ^ $ . | ? * + ( )
 								const escapedText = text.replace(/[-\\^$*+?.()|[\]{}]/g, '\\$&');
-
+								console.log(text);
 								// Create the regular expression with modified value which
 								// handles escaping special characters. Without escaping special
 								// characters, errors will appear in the console
 								const exp = new RegExp(escapedText, 'i');
-								setOptions(algoOption.filter(o => exp.test(o)));
+								setOptions(algoOption.filter(o => exp.test(o.label)));
 							}}
 						/>
 						<Box direction="row" align="center" gap="xsmall">
 
-							<TextInput icon={<BarChart color="brand" />} placeholder="Enter the length XD" onChange={event => { setArrayLength(event.target.value) }} />
+							<TextInput
+								icon={<BarChart color="brand" />} placeholder="Enter the length XD" onChange={event => {
+
+									if (event.target.value.length <= 3) {
+										setArrayLength(event.target.value)
+										if (event.target.value > 300) {
+											onOpen();
+										}
+									}
+								}} />
+							{open && (
+								<Layer
+									position="bottom"
+									modal={false}
+									margin={{ vertical: 'medium', horizontal: 'small' }}
+									onEsc={onClose}
+									responsive={false}
+									plain	
+								>
+									<Box
+										align="center"
+										direction="row"
+										gap="small"
+										justify="between"
+										round="medium"
+										elevation="medium"
+										pad={{ vertical: 'xsmall', horizontal: 'small' }}
+										background="#64b5f6"
+									>
+										<Box align="center" direction="row" gap="xsmall">
+											<StatusGood />
+											<Text>
+											Due to screen resolution, If the quantity is greater than 300, the column might not be rendered.
+             							 </Text>
+										</Box>
+										<Button icon={<FormClose />} onClick={onClose} plain />
+									</Box>
+								</Layer>)}
 							<Button
 								disabled={isRunning}
 								color="light-2"
@@ -306,8 +359,25 @@ const Visualizer = () => {
 								label="reset"
 								onClick={() => { reset() }}
 							/>
-
-
+							<Tip
+								plain
+								content={
+									<Box
+										pad="small"
+										gap="small"
+										width={{ max: 'small' }}
+										round="small"
+										background="background-front"
+										responsive={false}
+									>
+										<Text weight="bold">Warning</Text>
+										<Text size="small">Due to screen resolution, If the quantity is greater than 300, the column might not be rendered.</Text>
+									</Box>
+								}
+								dropProps={{ align: { left: 'right' } }}
+							>
+								<Button icon={<HelpOption size="medium" />} />
+							</Tip>
 						</Box>
 						<Box >
 							<Grid
@@ -357,16 +427,24 @@ const Visualizer = () => {
 							<Text>Total operations: <span className="Operations">0</span></Text>
 						</Tip>
 						<Box
-						height="small"
-						 background={{
-						"dark": true,
-						"position": "bottom",
-						"repeat": "no-repeat",
-						"size": "contain",
-						"image": "url(https://c.tenor.com/HJvqN2i4Zs4AAAAj/milk-and-mocha-cute.gif)"
-						}}>
-							
+							height="small"
+							background={{
+								"dark": true,
+								"position": "bottom",
+								"repeat": "no-repeat",
+								"size": "contain",
+								"image": "url(" + background_music + ")"
+							}}>
+
 						</Box>
+						<Box direction="row" align="center"
+							justify="center"
+							gap="small">
+							<Button icon={<FacebookOption />} onClick={() => { }} primary href="https://www.facebook.com/vitrung97/" target="_blank" />
+							<Button icon={<LinkedinOption />} onClick={() => { }} primary href="https://www.linkedin.com/in/huatrung/" target="_blank" />
+							<Button icon={<Favorite />} onClick={() => { }} primary />
+						</Box>
+
 					</Box>
 
 				</Box>

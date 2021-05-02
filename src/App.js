@@ -7,7 +7,8 @@ import { grommet } from 'grommet/themes';
 const theme = {
 	"global": {
 	  "colors": {
-		"brand": '#0069c0',
+		"brand": "#0069c0",
+		"focus": "#42a5f5",
 	  },
 	},
   };
