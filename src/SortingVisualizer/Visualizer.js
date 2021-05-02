@@ -303,6 +303,9 @@ const Visualizer = () => {
 											onOpen();
 										}
 									}
+									else{
+										onOpen();
+									}
 								}} />
 							{open && (
 								<Layer
