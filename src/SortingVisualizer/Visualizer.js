@@ -301,6 +301,7 @@ const Visualizer = () => {
 						<Box direction="row" align="center" gap="xsmall">
 
 							<TextInput
+								disabled={isRunning}
 								icon={<BarChart color="brand" />} placeholder="Enter the length XD" onChange={event => {
 
 									if (event.target.value.length <= 3) {
