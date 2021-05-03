@@ -265,8 +265,14 @@ const Visualizer = () => {
 			>
 				<Box direction="column" align="center" gap="medium" fill="vertical" border={{ color: 'brand', size: 'large', side: "right" }}>
 					<Box align="center">
-						<Text>Sound of</Text>
-						<Text>Sorting Algorithm</Text>
+						<Text size="large">Sound of</Text>
+						<Box direction="row">
+						<span class="music-note one" >&#9835;</span>
+						<span class="music-note two" >&#9836;</span>
+						<Text size="large">Sorting Algorithm</Text>
+						<span class="music-note one" >&#9834;</span>
+						<span class="music-note two" >&#119137;</span>
+						</Box>
 					</Box>
 					<Box pad="medium" gap="small" >
 						<Select
