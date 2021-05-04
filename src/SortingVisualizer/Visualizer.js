@@ -33,8 +33,8 @@ const Visualizer = () => {
 	const [open, setOpen] = React.useState();
 	const [mainArray, setMainArray] = useState([]);
 	const [arrayLength, setArrayLength] = useState(100);
-	const [animationSpeed, setAnimationSpeed] = useState(1);
-	const [frequency, setFrequency] = useState(100);
+	const [animationSpeed, setAnimationSpeed] = useState(11);
+	const [frequency, setFrequency] = useState(550);
 	const [sound, setSound] = useState(10);
 	const [algo, setAlgo] = useState({ label: 'Bubble Sort', value: "quickSort" });
 	const [genArray, setGenArray] = useState(true);
@@ -118,10 +118,11 @@ const Visualizer = () => {
 									let temp = arrayBars[lastJRef.current].style.height;
 									arrayBars[lastJRef.current].style.height = arrayBars[lastIRef.current].style.height;
 									arrayBars[lastIRef.current].style.height = temp;
-									if (arrayLength < 29) {
-										let temp = arrayBars[lastJRef.current].innerHTML;
-										arrayBars[lastJRef.current].innerHTML = arrayBars[lastIRef.current].innerHTML;
-										arrayBars[lastIRef.current].innerHTML = temp;
+									if (arrayBars.length < 29) {
+										let temp1 = arrayBars[lastJRef.current].innerText;
+										arrayBars[lastJRef.current].innerText = arrayBars[lastIRef.current].innerText;
+										arrayBars[lastIRef.current].innerText = temp1;
+
 									}
 									var factor = ((event[3] / tmpLength) + (event[4] / tmpLength) / 2);
 									var frequency = fre - (factor * fre);
