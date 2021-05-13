@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import colors from './colorCodes';
 // stylesheet
 import './SortingVisualizer.css';
-import { RangeInput, Box, Button, Grid, Text, Select, FormField, TextInput, Tip,Layer } from 'grommet';
+import { RangeInput, Box, Button, Grid, Text, Select, FormField, TextInput, Tip, Layer } from 'grommet';
 import { Refresh, CirclePlay, Pause, Resume, Cycle, BarChart, HelpOption, FacebookOption, Favorite, LinkedinOption, FormClose, StatusGood } from 'grommet-icons';
 const algoOption = [
 	{ label: 'Bubble Sort', value: "bubbleSort" },
@@ -85,53 +85,58 @@ const Visualizer = () => {
 					if (lastDidIt.current === false) {
 						var event = (queueRef.current || []).shift();
 						if (event) {
-							if (event[0] === 'finished') {
-								arrayBars[event[1]].style.backgroundColor = colors.afterSortingColor;
-								tone.frequency.linearRampToValueAtTime(fre + (event[1] * fre), audio.currentTime);
-								track.gain.cancelScheduledValues(audio.currentTime);
-								track.gain.linearRampToValueAtTime(0.75, audio.currentTime);
-								track.gain.linearRampToValueAtTime(0, audio.currentTime + delay);
-								lastIRef.current = -1; lastJRef.current = -1;
-							}
+							if (event[0] === 'done') {
+								setRunning(false);
+							 }
 							else {
-								lastIRef.current = event[1]
-								lastJRef.current = event[2]
-								if (event[0] === 'test') {
-									arrayBars[lastIRef.current].style.backgroundColor = colors.cyan;
-									arrayBars[lastJRef.current].style.backgroundColor = colors.cyan;
-
-									var factor = ((event[3] / tmpLength) + (event[4] / tmpLength) / 2);
-									var frequency = fre + (factor * fre);
-									tone.frequency.linearRampToValueAtTime(frequency, audio.currentTime);
-
+								if (event[0] === 'finished') {
+									arrayBars[event[1]].style.backgroundColor = colors.afterSortingColor;
+									tone.frequency.linearRampToValueAtTime(fre + (event[1] * fre), audio.currentTime);
 									track.gain.cancelScheduledValues(audio.currentTime);
 									track.gain.linearRampToValueAtTime(0.75, audio.currentTime);
 									track.gain.linearRampToValueAtTime(0, audio.currentTime + delay);
-									document.getElementsByClassName('Operations')[0].innerHTML =
-										parseInt(document.getElementsByClassName('Operations')[0].innerHTML) + 1
+									lastIRef.current = -1; lastJRef.current = -1;
 								}
+								else {
+									lastIRef.current = event[1]
+									lastJRef.current = event[2]
+									if (event[0] === 'test') {
+										arrayBars[lastIRef.current].style.backgroundColor = colors.cyan;
+										arrayBars[lastJRef.current].style.backgroundColor = colors.cyan;
 
-								if (event[0] === 'swap') {
-									arrayBars[lastIRef.current].style.backgroundColor = colors.pivotActiveColor;
-									arrayBars[lastJRef.current].style.backgroundColor = colors.pivotActiveColor;
+										var factor = ((event[3] / tmpLength) + (event[4] / tmpLength) / 2);
+										var frequency = fre + (factor * fre);
+										tone.frequency.linearRampToValueAtTime(frequency, audio.currentTime);
 
-									let temp = arrayBars[lastJRef.current].style.height;
-									arrayBars[lastJRef.current].style.height = arrayBars[lastIRef.current].style.height;
-									arrayBars[lastIRef.current].style.height = temp;
-									if (arrayBars.length < 29) {
-										let temp1 = arrayBars[lastJRef.current].innerText;
-										arrayBars[lastJRef.current].innerText = arrayBars[lastIRef.current].innerText;
-										arrayBars[lastIRef.current].innerText = temp1;
-
+										track.gain.cancelScheduledValues(audio.currentTime);
+										track.gain.linearRampToValueAtTime(0.75, audio.currentTime);
+										track.gain.linearRampToValueAtTime(0, audio.currentTime + delay);
+										document.getElementsByClassName('Operations')[0].innerHTML =
+											parseInt(document.getElementsByClassName('Operations')[0].innerHTML) + 1
 									}
-									var factor = ((event[3] / tmpLength) + (event[4] / tmpLength) / 2);
-									var frequency = fre - (factor * fre);
 
-									tone.frequency.linearRampToValueAtTime(frequency, audio.currentTime);
+									if (event[0] === 'swap') {
+										arrayBars[lastIRef.current].style.backgroundColor = colors.pivotActiveColor;
+										arrayBars[lastJRef.current].style.backgroundColor = colors.pivotActiveColor;
 
-									track.gain.cancelScheduledValues(audio.currentTime);
-									track.gain.linearRampToValueAtTime(1, audio.currentTime);
-									track.gain.linearRampToValueAtTime(0, audio.currentTime + delay);
+										let temp = arrayBars[lastJRef.current].style.height;
+										arrayBars[lastJRef.current].style.height = arrayBars[lastIRef.current].style.height;
+										arrayBars[lastIRef.current].style.height = temp;
+										if (arrayBars.length < 29) {
+											let temp1 = arrayBars[lastJRef.current].innerText;
+											arrayBars[lastJRef.current].innerText = arrayBars[lastIRef.current].innerText;
+											arrayBars[lastIRef.current].innerText = temp1;
+
+										}
+										var factor = ((event[3] / tmpLength) + (event[4] / tmpLength) / 2);
+										var frequency = fre - (factor * fre);
+
+										tone.frequency.linearRampToValueAtTime(frequency, audio.currentTime);
+
+										track.gain.cancelScheduledValues(audio.currentTime);
+										track.gain.linearRampToValueAtTime(1, audio.currentTime);
+										track.gain.linearRampToValueAtTime(0, audio.currentTime + delay);
+									}
 								}
 							}
 						} else {
@@ -159,10 +164,10 @@ const Visualizer = () => {
 	const onOpen = () => {
 		setOpen(true);
 		setTimeout(() => {
-		  setOpen(undefined);
+			setOpen(undefined);
 		}, 3000);
-	  };
-	  const onClose = () => setOpen(undefined);
+	};
+	const onClose = () => setOpen(undefined);
 
 	function populateArray() {
 		var size = parseInt(arrayLength);
@@ -268,11 +273,11 @@ const Visualizer = () => {
 					<Box align="center">
 						<Text size="large">Sound of</Text>
 						<Box direction="row">
-						<span class="music-note one" >&#9835;</span>
-						<span class="music-note two" >&#9836;</span>
-						<Text size="large">Sorting Algorithm</Text>
-						<span class="music-note one" >&#9834;</span>
-						<span class="music-note two" >&#119137;</span>
+							<span class="music-note one" >&#9835;</span>
+							<span class="music-note two" >&#9836;</span>
+							<Text size="large">Sorting Algorithm</Text>
+							<span class="music-note one" >&#9834;</span>
+							<span class="music-note two" >&#119137;</span>
 						</Box>
 					</Box>
 					<Box pad="medium" gap="small" >
@@ -311,7 +316,7 @@ const Visualizer = () => {
 											onOpen();
 										}
 									}
-									else{
+									else {
 										onOpen();
 									}
 								}} />
@@ -322,7 +327,7 @@ const Visualizer = () => {
 									margin={{ vertical: 'medium', horizontal: 'small' }}
 									onEsc={onClose}
 									responsive={false}
-									plain	
+									plain
 								>
 									<Box
 										align="center"
@@ -337,7 +342,7 @@ const Visualizer = () => {
 										<Box align="center" direction="row" gap="xsmall">
 											<StatusGood />
 											<Text>
-											Due to screen resolution, If the quantity is greater than 300, the column might not be rendered.
+												Due to screen resolution, If the quantity is greater than 300, the column might not be rendered.
              							 </Text>
 										</Box>
 										<Button icon={<FormClose />} onClick={onClose} plain />
@@ -401,7 +406,7 @@ const Visualizer = () => {
 								]}
 							>
 								<Box gridArea="nav" gap="xsmall">
-									<Text size="medium">Speed:<span className="SpeedAnimation">{`${animationSpeed}`}</span></Text>
+									<Text size="medium">Delay:<span className="SpeedAnimation">{`${animationSpeed}`}</span></Text>
 									<Text size="medium">Freq: <span className="Frequency">{`${frequency}`}</span></Text>
 									<Text size="medium">Sound: <span className="Sound">{`${sound}`}</span></Text>
 

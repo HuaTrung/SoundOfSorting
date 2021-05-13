@@ -212,4 +212,5 @@ onmessage = (e) => {
     var sort = eval(e.data[0]);
     sort(arr, e.data[2]);
     finishSorted(arr);
+    postMessage(['done']);
   }; 
